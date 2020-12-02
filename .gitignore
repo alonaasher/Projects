@@ -1,0 +1,11 @@
+# ignore all files
+*
+# except 
+!*/
+!*.js
+!*.txt
+!*.json
+!*.gitignore
+!make*
+!Make*
+!README.md
