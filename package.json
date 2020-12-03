@@ -1,14 +1,14 @@
 {
   "name": "newproject",
   "version": "1.0.0",
-  "description": "my new",
-  "main": "command.js",
+  "description": "logging service",
+  "main": "service.js",
   "scripts": {
-    "test": "test"
+    "test": "client.js"
   },
   "repository": {
     "type": "git",
-    "url": "none"
+    "url": "https://github.com/alonaasher/Projects.git"
   },
   "keywords": [
     "alona"
@@ -17,5 +17,12 @@
   "license": "SEE LICENSE IN <alona.txt>",
   "devDependencies": {
     "ws": "3.3.2"
+  },
+  "dependencies": {
+    "dockerode": "^3.2.1",
+    "express": "^4.17.1",
+    "follow-redirects": "^1.13.0",
+    "fs": "0.0.1-security",
+    "readline": "^1.3.0"
   }
 }
