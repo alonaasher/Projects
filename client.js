@@ -1,5 +1,6 @@
 const http = require("follow-redirects").http;
 const readline = require("readline");
+const serverPort = 8080;
 
 const rl = readline.createInterface({
   input: process.stdin,
@@ -33,7 +34,7 @@ function reqContainerList() {
   const getListOpts = {
     method: "GET",
     hostname: "localhost",
-    port: 8080,
+    port: serverPort,
     path: "/list",
     headers: {},
     maxRedirects: 20,
@@ -46,7 +47,7 @@ function reqContainerLogs(id) {
   const getLogsOpts = {
     method: "GET",
     hostname: "localhost",
-    port: 8080,
+    port: serverPort,
     path: `/logs?id=${id}`,
     headers: {},
     maxRedirects: 20,

@@ -3,8 +3,8 @@ const express = require("express");
 const Docker = require("dockerode");
 const app = express();
 app.use(express.json());
-const dockerPort = 8080;
-const serverPort = 8888;
+const dockerPort = 8888;
+const serverPort = 8080;
 const docker = new Docker("localhost", dockerPort);
 
 const logOpts = {
@@ -52,11 +52,6 @@ function attachAndGetLogs(container) {
   });
 }
 
-app.listen(serverPort, () => {
-  console.log(`listening at http://localhost:port${serverPort}`);
-});
-
-
 // response to client request for a list of running containers
 app.get("/list", (req, res) => {
   docker.listContainers(filterRunOpts, (err, containers) => {
@@ -83,7 +78,7 @@ app.get("/list", (req, res) => {
         return;
       }
       res.writeHead(200, { "Content-Type": "text/html" });
-      res.write(data);
+      res.end(data);
       return;
     });
   });
@@ -98,7 +93,11 @@ app.get("/logs", (req, res) => {
       return;
     }
     res.writeHead(200, { "Content-Type": "text/html" });
-    res.write(data);
+    res.end(data);
     return;
   });
+});
+
+app.listen(serverPort, () => {
+  console.log(`listening at http://localhost:port${serverPort}`);
 });
