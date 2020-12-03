@@ -20,15 +20,15 @@ rl.on("line", (cmd) => {
   if (cmd.localeCompare(commands.GETLIST) === 0) {
     reqContainerList();
   } else if (cmd.localeCompare(commands.GETLOGS) === 0) {
-    rl.question("enter container id ", function (id) {
+    rl.question("enter container id ", (id) => {
       reqContainerLogs(id);
     });
   } else if (cmd.localeCompare(commands.ADDCONT) === 0) {
-    rl.question("enter container id ", function (id) {
+    rl.question("enter container id ", (id) => {
       addContainer(id);
     });
   } else if (cmd.localeCompare(commands.REMOVECON) === 0) {
-      rl.question("enter container id ", function (id) {
+      rl.question("enter container id ", (id) => {
         removeContainer(id);
     });
   } else if (cmd.localeCompare(commands.EXIT) === 0) {
@@ -95,16 +95,16 @@ function removeContainer(id){
 }
 
 function deleteReqToServer(options, dataToDelete){
-  let req = http.request(options, function (res) {
+  let req = http.request(options, (res) => {
     let chunks = [];  
-    res.on("data", function (chunk) {
+    res.on("data", (chunk) => {
       chunks.push(chunk);
     });
-    res.on("end", function (chunk) {
+    res.on("end", (chunk) => {
       let body = Buffer.concat(chunks);
       console.log(body.toString());
     });
-    res.on("error", function (error) {
+    res.on("error", (error) => {
       console.error(error);
     });
   });
@@ -114,16 +114,16 @@ function deleteReqToServer(options, dataToDelete){
 }
 
 function postReqToServer(options, dataToPost){
-  let req = http.request(options, function (res) {
+  let req = http.request(options, (res) => {
     let chunks = [];
-    res.on("data", function (chunk) {
+    res.on("data", (chunk) => {
       chunks.push(chunk);
     });
-    res.on("end", function (chunk) {
+    res.on("end", () => {
       let body = Buffer.concat(chunks);
       console.log(body.toString());
     });
-    res.on("error", function (error) {
+    res.on("error", (error) => {
       console.error(error);
     });
   });

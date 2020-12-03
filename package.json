@@ -1,0 +1,21 @@
+{
+  "name": "newproject",
+  "version": "1.0.0",
+  "description": "my new",
+  "main": "command.js",
+  "scripts": {
+    "test": "test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "none"
+  },
+  "keywords": [
+    "alona"
+  ],
+  "author": "alona",
+  "license": "SEE LICENSE IN <alona.txt>",
+  "devDependencies": {
+    "ws": "3.3.2"
+  }
+}

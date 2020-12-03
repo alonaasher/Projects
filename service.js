@@ -12,6 +12,7 @@ const logOpts = {
   stdout: true,
   follow: false,
 };
+
 const attachOpts = {
   stream: true,
   stdout: true,
@@ -34,6 +35,7 @@ app.post("/add", (req, res) => {
   res.end("container added");
 });
 
+// client request for deleting a container from the service
 app.delete("/remove", (req, res) => {
   let idToRemove = req.body.id;
   removeContainer(idToRemove);
@@ -86,6 +88,7 @@ app.get("/list", (req, res) => {
   });
 });
 
+
 // function to attach to a container and collect its logs
 function attachAndGetLogs(containerId) {
   let currContainer = docker.getContainer(containerId);
@@ -96,7 +99,7 @@ function attachAndGetLogs(containerId) {
       console.error(err);
       return;
     }
-    stream.on('exit', function (process) {
+    stream.on('exit', (process) => {
       writeStream.end();
       process.exit(process);
     });
