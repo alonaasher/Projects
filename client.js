@@ -10,7 +10,9 @@ const rl = readline.createInterface({
 const commands = {
   GETLIST: "get list",
   GETLOGS: "get logs",
-  EXIT: "exit",
+  ADDCONT: "add",
+  REMOVECON: "remove",
+  EXIT: "exit"
 };
 
 console.log("Welcome to our logging service. Please enter command");
@@ -20,6 +22,14 @@ rl.on("line", (cmd) => {
   } else if (cmd.localeCompare(commands.GETLOGS) === 0) {
     rl.question("enter container id ", function (id) {
       reqContainerLogs(id);
+    });
+  } else if (cmd.localeCompare(commands.ADDCONT) === 0) {
+    rl.question("enter container id ", function (id) {
+      addContainer(id);
+    });
+  } else if (cmd.localeCompare(commands.REMOVECON) === 0) {
+      rl.question("enter container id ", function (id) {
+        removeContainer(id);
     });
   } else if (cmd.localeCompare(commands.EXIT) === 0) {
     rl.close();
@@ -40,7 +50,7 @@ function reqContainerList() {
     maxRedirects: 20,
   };
   
-  reqFromServer(getListOpts);
+  getReqFromServer(getListOpts);
 }
 
 function reqContainerLogs(id) {
@@ -53,10 +63,75 @@ function reqContainerLogs(id) {
     maxRedirects: 20,
   };
   
-  reqFromServer(getLogsOpts);
+  getReqFromServer(getLogsOpts);
 }
 
-function reqFromServer(options){
+function addContainer(id) {
+  let dataToPost = JSON.stringify({"id":`${id}`});
+  const addContOpts = {
+    'method': 'POST',
+    'hostname': 'localhost',
+    'port': serverPort,
+    'path': '/add',
+    'headers': { 'Content-Type': 'application/json' },
+    'maxRedirects': 20
+  };
+
+  postReqToServer(addContOpts, dataToPost);                                                                             
+}
+
+function removeContainer(id){
+  const dataToDelete = JSON.stringify({"id":`${id}`});
+  const removeContOpt = {
+    'method': 'DELETE',
+    'hostname': 'localhost',
+    'port': serverPort,
+    'path': '/remove',
+    'headers': { 'Content-Type': 'application/json' },
+    'maxRedirects': 20
+  }
+  
+  deleteReqToServer(removeContOpt, dataToDelete);
+}
+
+function deleteReqToServer(options, dataToDelete){
+  let req = http.request(options, function (res) {
+    let chunks = [];  
+    res.on("data", function (chunk) {
+      chunks.push(chunk);
+    });
+    res.on("end", function (chunk) {
+      let body = Buffer.concat(chunks);
+      console.log(body.toString());
+    });
+    res.on("error", function (error) {
+      console.error(error);
+    });
+  });
+  req.setHeader('Content-Length', dataToDelete.length);
+  req.write(dataToDelete);
+  req.end();
+}
+
+function postReqToServer(options, dataToPost){
+  let req = http.request(options, function (res) {
+    let chunks = [];
+    res.on("data", function (chunk) {
+      chunks.push(chunk);
+    });
+    res.on("end", function (chunk) {
+      let body = Buffer.concat(chunks);
+      console.log(body.toString());
+    });
+    res.on("error", function (error) {
+      console.error(error);
+    });
+  });
+  req.write(dataToPost);
+  req.end();
+}
+
+function getReqFromServer(options){
   let req = http.request(options, (res) => {
     let chunks = [];
     res.on("data", (chunk) => {

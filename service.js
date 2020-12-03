@@ -22,37 +22,39 @@ const attachOpts = {
 
 const filterRunOpts = {
   all: false,
-  filters: { status: ["running"] },
+  filters:{ 
+    status: ["running"] 
+  },
 }; 
 
-collectRunningContLogs();
+// client request for registering a new container
+app.post("/add", (req, res) => {
+  let newId = req.body.id;
+  attachAndGetLogs(newId);
+  res.end("container added");
+});
 
-// function to get list of running containers and collect their logs
-function collectRunningContLogs() {
-  docker.listContainers(filterRunOpts, (err, containers) => {
-    containers.forEach((container) => {
-      attachAndGetLogs(container);
-    });
-  });
-}
+app.delete("/remove", (req, res) => {
+  let idToRemove = req.body.id;
+  removeContainer(idToRemove);
+  res.end("container removed");
+});
 
-// function to attach to running containers and collect their logs
-function attachAndGetLogs(container) {
-  let currContainer = docker.getContainer(container.Id);
-  let contFile = fs.createWriteStream(`logs_${currContainer.id}.txt`);
-  currContainer.attach(attachOpts, (err, stream) => { 
-    stream.pipe(contFile);
+// client request for logs of specific container
+app.get("/logs", (req, res) => {
+  let reqParamId = req.query.id;
+  fs.readFile(`logs_${reqParamId}.txt`, (err, data) => {
     if (err) {
-      console.error(err);
+      console.log(err);
       return;
     }
-    stream.on('exit', function (process) {
-      process.exit(process);
-    });
+    res.writeHead(200, { "Content-Type": "text/html" });
+    res.end(data);
+    return;
   });
-}
+});
 
-// response to client request for a list of running containers
+// client request for list of running containers
 app.get("/list", (req, res) => {
   docker.listContainers(filterRunOpts, (err, containers) => {
     let fileName = `container_list.txt`;
@@ -84,19 +86,31 @@ app.get("/list", (req, res) => {
   });
 });
 
-// response to client request for logs of specific container
-app.get("/logs", (req, res) => {
-  let reqParamId = req.query.id;
-  fs.readFile(`logs_${reqParamId}.txt`, (err, data) => {
+// function to attach to a container and collect its logs
+function attachAndGetLogs(containerId) {
+  let currContainer = docker.getContainer(containerId);
+  let writeStream = fs.createWriteStream(`logs_${currContainer.id}.txt`);
+  currContainer.attach(attachOpts, (err, stream) => { 
+    stream.pipe(writeStream);
     if (err) {
-      console.log(err);
+      console.error(err);
       return;
     }
-    res.writeHead(200, { "Content-Type": "text/html" });
-    res.end(data);
-    return;
+    stream.on('exit', function (process) {
+      writeStream.end();
+      process.exit(process);
+    });
   });
-});
+}
+
+function removeContainer(idToRemove){
+  let currContainer = docker.getContainer(idToRemove);
+  currContainer.remove(() => {
+    let fileName = `logs_${idToRemove}.txt`;
+    fs.unlinkSync(fileName);
+    console.log("log file removed");
+  });  
+}
 
 app.listen(serverPort, () => {
   console.log(`listening at http://localhost:port${serverPort}`);
