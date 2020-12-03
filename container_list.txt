@@ -1,3 +1,0 @@
-List of running containers: 
-
-Name: /practical_northcutt - ID: c01da2242afb8245db4b80465f3152e59b3b54b87a738fd2ede88ff2ef73be06
