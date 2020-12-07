@@ -6,12 +6,7 @@ app.use(express.json());
 const dockerPort = 8888;
 const serverPort = 8080;
 const docker = new Docker("localhost", dockerPort);
-
-const logOpts = {
-  stderr: true,
-  stdout: true,
-  follow: false,
-};
+let labelToFollow; 
 
 const attachOpts = {
   stream: true,
@@ -21,28 +16,44 @@ const attachOpts = {
   timestamps: true,
 };
 
-const filterRunOpts = {
+const runningContOpts = {
   all: false,
   filters:{ 
     status: ["running"] 
   },
 }; 
 
-// client request for registering a new container
-app.post("/add", (req, res) => {
-  let newId = req.body.id;
-  attachAndGetLogs(newId);
-  res.end("container added");
+app.post("/setLabel", (req, res) => {
+  labelToFollow = req.body.label;
+  attachToLabeledContainers({
+    all: false,
+    filters:{ 
+      status: ["running"], 
+      label: [labelToFollow] 
+    }
+  });
+  res.end("label set");
 });
 
-// client request for deleting a container from the service
-app.delete("/remove", (req, res) => {
-  let idToRemove = req.body.id;
-  removeContainer(idToRemove);
-  res.end("container removed");
-});
+function attachToLabeledContainers(labelOpts) {
+  docker.listContainers(labelOpts, (err, containers) => {
+    containers.forEach((currContainer) => {
+      let writeStream = fs.createWriteStream(`logs_${currContainer.Id}.txt`);
+      docker.getContainer(currContainer.Id).attach(attachOpts, (err, stream) => { 
+        stream.pipe(writeStream);
+        if (err) {
+          console.error(err);
+          return;
+        }
+        stream.on('exit', (process) => {
+          writeStream.end();
+          process.exit(process);
+        });
+      });
+    });
+  });
+}
 
-// client request for logs of specific container
 app.get("/logs", (req, res) => {
   let reqParamId = req.query.id;
   fs.readFile(`logs_${reqParamId}.txt`, (err, data) => {
@@ -56,9 +67,8 @@ app.get("/logs", (req, res) => {
   });
 });
 
-// client request for list of running containers
 app.get("/list", (req, res) => {
-  docker.listContainers(filterRunOpts, (err, containers) => {
+  docker.listContainers(runningContOpts, (err, containers) => {
     let fileName = `container_list.txt`;
     fs.writeFile(fileName, "List of running containers: \n", (err) => {
       if (err) {
@@ -87,33 +97,6 @@ app.get("/list", (req, res) => {
     });
   });
 });
-
-
-// function to attach to a container and collect its logs
-function attachAndGetLogs(containerId) {
-  let currContainer = docker.getContainer(containerId);
-  let writeStream = fs.createWriteStream(`logs_${currContainer.id}.txt`);
-  currContainer.attach(attachOpts, (err, stream) => { 
-    stream.pipe(writeStream);
-    if (err) {
-      console.error(err);
-      return;
-    }
-    stream.on('exit', (process) => {
-      writeStream.end();
-      process.exit(process);
-    });
-  });
-}
-
-function removeContainer(idToRemove){
-  let currContainer = docker.getContainer(idToRemove);
-  currContainer.remove(() => {
-    let fileName = `logs_${idToRemove}.txt`;
-    fs.unlinkSync(fileName);
-    console.log("log file removed");
-  });  
-}
 
 app.listen(serverPort, () => {
   console.log(`listening at http://localhost:port${serverPort}`);
